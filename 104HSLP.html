@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>【高中職專用】生涯興趣Ｘ心流時光 → 學習歷程檔案</title>
+<meta name="description" content="輸入生涯興趣測驗結果＆心流時光事件，一鍵生成出可以貼到ChatGPT的學習歷程檔案Prompt。" />
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{height:100%}
+  :root{
+    --brand:#ff6600;--brand-600:#e65a00;--ink:#1f2328;--muted:#5b616e;--ring:#e6e8ef;--card:#fff;
+    --radius:14px;--shadow:0 6px 18px rgba(23,26,31,.06);
+    --font-scale:1;
+  }
+  body{
+    margin:0;color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans TC","PingFang TC",sans-serif;
+    line-height:1.65;background:#f6f7fb;
+    font-size:calc(18px * var(--font-scale));
+    -webkit-font-smoothing:antialiased;
+  }
+  @media(min-width:900px){ body{font-size:calc(17px * var(--font-scale));} }
+  header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(160%) blur(8px);
+    background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));border-bottom:1px solid var(--ring)}
+  .header-inner{max-width:min(980px,92vw);margin:0 auto;padding:12px 8px}
+  .head-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .title{font-weight:800;font-size:clamp(20px, 1.1rem + 2vw, 30px)}
+  .sub{color:var(--muted);font-size:clamp(.95rem, .9rem + .4vw, 1.05rem)}
+  .fs-ctrl{display:flex;gap:8px;align-items:center}
+  .btn{appearance:none;border:1px solid transparent;background:var(--brand);color:#fff;border-radius:10px;padding:.9em 1.1em;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;transition:transform .06s ease, background .2s ease;font-size:1em}
+  .btn:hover{background:var(--brand-600)} .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:#444e60}
+  .btn.ghost{background:transparent;color:inherit;border:1px solid var(--ring)}
+  .btn.block{width:100%;justify-content:center}
+  .btn.sm{padding:.45em .7em;border-radius:8px}
+  .wrap{max-width:min(980px,92vw);margin:16px auto 40px;padding:0 4px}
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .landing{padding:16px;display:grid;gap:12px}
+  .qtitle{font-size:clamp(1.15rem, 1.05rem + 1vw, 1.6rem);font-weight:800;margin:4px 0}
+  .muted{color:var(--muted);font-size:1rem}
+  .hint{color:var(--muted);font-size:.95rem}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px}
+  .progress{position:sticky;top:64px;height:12px;background:#e9ebf3;border-radius:999px;overflow:hidden;margin:0 0 14px}
+  .bar{height:100%;background:var(--brand);width:0;transition:width .25s ease}
+  .grid{display:grid;gap:10px}
+  .cols-2{grid-template-columns:1fr}
+  @media(min-width:640px){.cols-2{grid-template-columns:1fr 1fr}}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .field{width:100%;padding:1em 1.1em;border:1px solid var(--ring);border-radius:10px;font-size:1em;background:var(--card)}
+  .field:focus{outline:2px solid transparent;box-shadow:0 0 0 3px rgba(255,102,0,.25)}
+  textarea{min-height:28vh;resize:vertical}
+  .chip{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--ring);border-radius:999px;background:#fafbff;cursor:pointer;user-select:none;font-size:1em}
+  .chip b{font-variant-numeric:tabular-nums}
+  .chip.sel{position:relative;background:#fff;border-color:#ffd0ae}
+  .chip.sel::before{content:'';position:absolute;inset:0;border-radius:999px;background:rgba(255,102,0,.12);pointer-events:none}
+  .chip.sel::after{content:attr(data-order);position:absolute;inset:0;margin:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#fff;color:#a04300;font-weight:800;font-size:1.1em;pointer-events:none}
+  .sel-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+  .sel-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--brand);background:#fff7f0;border-radius:999px;font-size:.95rem}
+  .sel-pill button{all:unset;cursor:pointer;padding:2px 4px;border-radius:6px}
+  .safe-bottom{padding-bottom:calc(env(safe-area-inset-bottom,0) + 8px)}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="head-row">
+      <div>
+        <div class="title">【高中職專用】生涯興趣Ｘ心流時光 → 學習歷程檔案</div>
+        <div class="sub">彙整「生涯興趣Ｘ心流時光」探索成果，一鍵生成可以丟給ChatGPT產出學習歷程檔案的Prompt</div>
+      </div>
+      <div class="fs-ctrl" aria-label="字級調整">
+        <button class="btn ghost sm" id="fsDown" title="縮小字級">A−</button>
+        <button class="btn ghost sm" id="fsUp" title="放大字級">A＋</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card landing" id="landing">
+    <p class="muted">使用說明：請點選「啟動我的AI職涯教練」，根據引導完成Prompt；或是點選「載入範例，先玩看看」，快速體驗一下使用程序。</p>
+    <div class="grid">
+      <button class="btn block" id="startBtn">▶︎ 啟動我的AI職涯教練</button>
+      <button class="btn secondary block" id="sampleBtn">✨ 載入範例，先玩看看</button>
+    </div>
+  </section>
+  <div id="stage" class="safe-bottom" style="margin-top:14px"></div>
+</main>
+
+<script>
+(function initApp(){
+  const stage = document.getElementById('stage');
+  const landing = document.getElementById('landing');
+  if(!stage || !landing){ document.addEventListener('DOMContentLoaded', initApp); return; }
+
+  /* --------- 字級控制（A±） --------- */
+  const key='fsScaleV2';
+  let scale = parseFloat(localStorage.getItem(key)) || 1; // 0.9 ~ 1.4
+  function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+  function applyScale(){ document.documentElement.style.setProperty('--font-scale', scale); }
+  applyScale();
+  document.getElementById('fsUp')?.addEventListener('click', ()=>{ scale = clamp(scale+0.1, 0.9, 1.4); localStorage.setItem(key,scale); applyScale(); });
+  document.getElementById('fsDown')?.addEventListener('click', ()=>{ scale = clamp(scale-0.1, 0.9, 1.4); localStorage.setItem(key,scale); applyScale(); });
+
+  /* --------- State --------- */
+  const S = {
+    step:0,total:12,
+    g1: null, // current grade group
+    g2_dept: '', g2_isHS: false,
+    club: '', club_none:false,
+    riasec: [], // pick 2
+    mi: [], // pick 3
+    flow1: '', flow1_none:false,
+    flow2: '', flow2_none:false,
+    flow3: '', flow3_none:false,
+    flow4: '', flow4_none:false,
+    flow5: '', flow5_none:false,
+  };
+
+  /* --------- Options --------- */
+  const gradeOpts = [
+    [1,'普通型高中一年級'],
+    [2,'普通型高中二年級～三年級：人文法政類'],
+    [3,'普通型高中二年級～三年級：財經商管類'],
+    [4,'普通型高中二年級～三年級：科技工程類'],
+    [5,'普通型高中二年級～三年級：生醫衛護類'],
+    [6,'技職型高中'],
+    [7,'其他（請在下一題補充說明）']
+  ];
+
+  const riasecOpts = [
+[1,'R.實作型：喜歡具體、動手操作的任務，常展現解決實際問題的行為。偏好戶外、機械、工具或體力活動，較少抽象或人際互動。喜歡明確的工作環境與實際成果。'],[2,'I.研究型：喜歡思考、探究、驗證理論，展現出邏輯推理與獨立解決問題的行為。偏好數理、科學、醫學等需要深入分析的工作，對實驗與知識追求感到興奮。'],[3,'A.藝術型：重視自我表達與創造。常展現創意發想、藝術創作或非傳統思維的行為。偏好音樂、繪畫、設計、表演等自由度高的活動，討厭過度僵化的規範。'],[4,'S.社會型：喜歡助人、協作與引導他人。常展現傾聽、教導、支持他人的行為。偏好溝通、人際互動與服務工作，樂於建立和諧關係。'],[5,'E.企業型：喜歡影響與說服他人，展現領導、組織與決策的行為。偏好充滿挑戰與競爭的環境，樂於承擔風險並追求成就。'],[6,'C.事務型：喜歡有結構與秩序的環境。常展現精準、耐心、追求效率的行為。偏好處理數據、文件、流程，擅長在規範下完成任務。']
+  ];
+  const miOpts = [
+    [1,'邏輯數學：擅長推理思考，喜歡提問尋找答案，對益智遊戲、推理解題活動很感興趣。'],
+    [2,'語言文字：口齒伶俐，善於表達。用詞豐富，具說服力。能言善道，喜歡發問、閱讀、撰寫創作。'],
+    [3,'自然觀察：喜歡觀察大自然生態，對飼養動物、栽種植物有濃厚興趣，對周圍環境充滿好奇心。'],
+    [4,'肢體動覺：擅長運用身體表達想法和感受，喜歡動手操作，偏好以活動為主的工作與學習型態。'],
+    [5,'空間藝術：習慣用意象及圖像來思考，喜歡拼圖、迷宮、愛繪畫、設計及空間規劃。'],
+    [6,'音樂旋律：能輕易記住歌曲、旋律及辨別音調，可以輕鬆學會樂器，工作學習偏好搭配音樂旋律。'],
+    [7,'人際互動：擅長觀察人的情緒，喜歡參與團體活動。善於激勵他人，喜歡扮演團體領導者的角色。'],
+    [8,'內省同理：擅長探索自己及同理他人，能意識到自己情緒與想法，能安靜獨處，清楚自己的優缺點。']
+  ];
+
+  const sample = {
+    step:1,
+    g1:2,
+    g2_dept:'我是普通高中學生',
+    g2_isHS:true,
+    club:'吉他社/教學組組長，偏鄉服務隊/活動部部長',
+    riasec:[4,5],
+    mi:[8,7,2],
+    flow1:'國一的寒假，參加四天三夜的全國大露營擔任小隊長。',
+    flow2:'國三升高一暑假，用二週的時間跟教會弟兄姊妹騎自行車環島。',
+    flow3:'高一下學期，擔任輔導志工團心靈電影院總召集人，讓全校同學用電影認識自己。',
+    flow4:'高二上學期，擔任學校樂隊指揮，並在高二下帶領樂隊獲得全國軍樂競賽亞軍。',
+    flow5:'高二升高三暑假，擔任原鄉音樂夏令營副總召，陪伴原住民孩童進行音樂成果發表。'
+  };
+
+  /* --------- UI Helpers --------- */
+  const progress = () => {
+    const pct = Math.round(Math.min(S.step,S.total)/S.total*100);
+    return `<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><div class="bar" style="width:${pct}%"></div></div>`;
+  };
+  const nav = () => `<div class="toolbar">${S.step>1?'<button class="btn ghost" id="prev">← 上一題</button>':''}${S.step<S.total?'<button class="btn" id="next">下一題 →</button>':'<button class="btn" id="gen">生成彙整 →</button>'}</div>`;
+
+  const chips = (opts, selected, capOrSingle) => {
+    const multi = Array.isArray(selected);
+    let html = '<div class="grid cols-2">';
+    for(const [id,text] of opts){
+      const isSel = multi ? selected.includes(id) : selected===id;
+      const order = multi && isSel ? (selected.indexOf(id)+1) : '';
+      html += `<button type="button" class="chip${isSel?' sel':''}" data-id="${id}" ${order?`data-order="${order}"`:''} aria-pressed="${isSel}"><b>(${id})</b><span>${text}</span></button>`;
+    }
+    html += '</div>';
+    setTimeout(()=>{
+      stage.querySelectorAll('.chip').forEach(el=>{
+        el.onclick = () => {
+          const id = +el.getAttribute('data-id');
+          if(!multi){ capOrSingle(id); }else{ toggleMulti(selected, id, capOrSingle); }
+          render();
+        };
+        el.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); } };
+      });
+    },0);
+    return html;
+  };
+  const toggleMulti = (arr, id, cap) => {
+    const i = arr.indexOf(id);
+    if(i>=0){ arr.splice(i,1); return; }
+    if(arr.length < cap){ arr.push(id); }
+  };
+  const selStrip = (opts, selected, arrRef) => {
+    if(!selected.length) return '<div class="hint">尚未選擇。</div>';
+    let h = '<div class="sel-strip">';
+    for(const id of selected){
+      const text = (opts.find(o=>o[0]===id)||[])[1] || '';
+      h += `<span class="sel-pill"><b>(${id})</b><span>${text.replace(/<[^>]+>/g,'')}</span><button data-id="${id}" aria-label="移除">×</button></span>`;
+    }
+    h += '</div>';
+    setTimeout(()=>{
+      stage.querySelectorAll('.sel-pill button').forEach(b=>{
+        b.onclick = ()=>{ const id = +b.getAttribute('data-id'); const i = arrRef.indexOf(id); if(i>=0){ arrRef.splice(i,1); render(); } };
+      });
+    },0);
+    return h;
+  };
+  const qWrap = (title, hint, inner) => {
+    stage.innerHTML = `${progress()}<section class="card" style="padding:16px">
+      <div class="qtitle">${title}</div>
+      ${hint?`<div class="hint">${hint}</div>`:''}
+      <div class="grid" style="margin-top:10px">${inner}</div>
+      ${nav()}
+    </section>`;
+    const prev = stage.querySelector('#prev'), next = stage.querySelector('#next'), gen = stage.querySelector('#gen');
+    if(prev) prev.onclick = ()=>{ S.step--; render(); };
+    if(next) next.onclick = ()=>{ S.step++; render(); };
+    if(gen)  gen.onclick  = ()=>{ S.step = 12; render(); };
+  };
+  const escapeHTML = s => String(s??'').replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
+
+  /* --------- Open ChatGPT App (mobile-friendly) --------- */
+  function openChatGPTApp(){
+    const webUrl = 'https://chatgpt.com/';
+    const universalUrl = 'https://chat.openai.com/';
+    const schemeUrl = 'chatgpt://';
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isAndroid = /android/i.test(navigator.userAgent);
+    let fallbackTimer;
+
+    const fallback = () => {
+      window.open(universalUrl, '_blank', 'noopener') || window.open(webUrl, '_blank', 'noopener');
+    };
+
+    const onVis = () => { if (document.hidden){ clearTimeout(fallbackTimer); document.removeEventListener('visibilitychange', onVis); } };
+    document.addEventListener('visibilitychange', onVis);
+
+    try{
+      if(isIOS){
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = schemeUrl;
+        document.body.appendChild(iframe);
+        fallbackTimer = setTimeout(fallback, 700);
+        setTimeout(()=>iframe.remove(), 1500);
+      }else if(isAndroid){
+        location.href = schemeUrl;
+        fallbackTimer = setTimeout(fallback, 700);
+      }else{
+        fallback();
+      }
+    }catch(e){
+      fallback();
+    }
+  }
+
+  /* --------- Render --------- */
+  function render(){
+    landing.hidden = (S.step >= 1);
+    switch(S.step){
+      case 1:
+        qWrap('1. 我目前就讀？','請從下列選項中，選出一個符合自己現況。', chips(gradeOpts, S.g1, (id)=>S.g1=id));
+        break;
+      case 2:
+        qWrap('2. 我目前是就讀哪一科或那個班？','技職高中請輸入科別，例如：資訊處理科。特殊班，請輸入班級類型。例如：自然資優班、語言資優班、體育班、美術班...。如果你是普通高中學生，請勾選文字框下方的「我是普通高中學生」選項。', `
+          <div class="row">
+            <input class="field" id="dept" placeholder="資訊處理科" value="${escapeHTML(S.g2_dept)}" ${S.g2_isHS?'disabled':''} aria-label="就讀科別">
+            <label class="hint"><input type="checkbox" id="hs" ${S.g2_isHS?'checked':''}> 我是普通高中學生</label>
+          </div>`);
+        stage.querySelector('#dept').oninput = e=> S.g2_dept = e.target.value;
+        stage.querySelector('#hs').onchange = e=>{ S.g2_isHS = e.target.checked; if(S.g2_isHS){ S.g2_dept='我是普通高中學生'; } else { S.g2_dept=''; } render(); };
+        break;
+      case 3:
+        qWrap('3. 我在以前（高中職、國中...）參加過哪些社團，擔任什麼職務？','請按照範例的格式撰寫。可輸入多個社團/職務，不同社團/職務間，請用「，」區隔。例如：吉他社/教學組組長，偏鄉服務隊/活動部部長。', `<div class="row">
+          <textarea class="field" id="club" ${S.club_none?'disabled':''} placeholder="吉他社教學組組長，偏鄉服務隊活動部部長">${escapeHTML(S.club)}</textarea>
+          <label class="hint"><input type="checkbox" id="clubn" ${S.club_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#club').oninput = e=> S.club = e.target.value;
+        stage.querySelector('#clubn').onchange = e=>{ S.club_none = e.target.checked; render(); };
+        break;
+      case 4:
+        qWrap('4. 我的生涯興趣測驗結果顯示，比較來勁的二個生涯興趣？（選 2）','請從六個選項中選擇兩個。若不清楚，可先做 104 生涯興趣測驗：<a href="https://guide.104.com.tw/interest/" target="_blank" rel="noopener">前往測驗</a>', selStrip(riasecOpts, S.riasec, S.riasec) + chips(riasecOpts, S.riasec, 2) + `<div class="hint">已選 ${S.riasec.length} / 2（可點選取消，號碼會自動前移）</div>`);
+        break;
+      case 5:
+        qWrap('5. 我比較擅長的三個多元智能？（選 3）','請從八個選項中選擇三個。', selStrip(miOpts, S.mi, S.mi) + chips(miOpts, S.mi, 3) + `<div class="hint">已選 ${S.mi.length} / 3</div>`);
+        break;
+      case 6:
+        qWrap('6. 我最有心流時光的一次生命事件是？','「所謂的『心流時光』，是讓人覺得比較來勁忘我、如魚得水、心想事成、欲罷不能的生命事件。每個心流時光事件組合包含：Time。Flow。二個元素。第一句的 Time，表示這個心流時光事件發生的時間或背景。第二句的 Flow，簡述這個心流時光事件的內容重點。 例如：國一的寒假，參加四天三夜的全國大露營擔任小隊長。」', `<div class="row">
+          <textarea class="field" id="flow1" ${S.flow1_none?'disabled':''} placeholder="國一的寒假，參加四天三夜的全國大露營擔任小隊長。">${escapeHTML(S.flow1)}</textarea>
+          <label class="hint"><input type="checkbox" id="flow1n" ${S.flow1_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#flow1').oninput = e=> S.flow1 = e.target.value;
+        stage.querySelector('#flow1n').onchange = e=>{ S.flow1_none = e.target.checked; render(); };
+        break;
+      case 7:
+        qWrap('7. 我另一個比較有心流時光感覺的生命經歷是？','例如：國三升高一暑假，用二週的時間跟教會弟兄姊妹騎自行車環島。', `<div class="row">
+          <textarea class="field" id="flow2" ${S.flow2_none?'disabled':''} placeholder="國三升高一暑假，用二週的時間跟教會弟兄姊妹騎自行車環島。">${escapeHTML(S.flow2)}</textarea>
+          <label class="hint"><input type="checkbox" id="flow2n" ${S.flow2_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#flow2').oninput = e=> S.flow2 = e.target.value;
+        stage.querySelector('#flow2n').onchange = e=>{ S.flow2_none = e.target.checked; render(); };
+        break;
+      case 8:
+        qWrap('8. 我另一個比較有心流時光感覺的生命經歷是？','例如：高一下學期，擔任輔導志工團心靈電影院總召集人，讓全校同學用電影認識自己。', `<div class="row">
+          <textarea class="field" id="flow3" ${S.flow3_none?'disabled':''} placeholder="高一下學期，擔任輔導志工團心靈電影院總召集人，讓全校同學用電影認識自己。">${escapeHTML(S.flow3)}</textarea>
+          <label class="hint"><input type="checkbox" id="flow3n" ${S.flow3_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#flow3').oninput = e=> S.flow3 = e.target.value;
+        stage.querySelector('#flow3n').onchange = e=>{ S.flow3_none = e.target.checked; render(); };
+        break;
+      case 9:
+        qWrap('9. 我另一個比較有心流時光感覺的生命經歷是？','例如：高二上學期，擔任學校樂隊指揮，並在高二下帶領樂隊獲得全國軍樂競賽亞軍。', `<div class="row">
+          <textarea class="field" id="flow4" ${S.flow4_none?'disabled':''} placeholder="高二上學期，擔任學校樂隊指揮，並在高二下帶領樂隊獲得全國軍樂競賽亞軍。">${escapeHTML(S.flow4)}</textarea>
+          <label class="hint"><input type="checkbox" id="flow4n" ${S.flow4_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#flow4').oninput = e=> S.flow4 = e.target.value;
+        stage.querySelector('#flow4n').onchange = e=>{ S.flow4_none = e.target.checked; render(); };
+        break;
+      case 10:
+        qWrap('10. 我另一個比較有心流時光感覺的生命經歷是？','例如：高二升高三暑假，擔任原鄉音樂夏令營副總召，陪伴原住民孩童進行音樂成果發表。', `<div class="row">
+          <textarea class="field" id="flow5" ${S.flow5_none?'disabled':''} placeholder="高二升高三暑假，擔任原鄉音樂夏令營副總召，陪伴原住民孩童進行音樂成果發表。">${escapeHTML(S.flow5)}</textarea>
+          <label class="hint"><input type="checkbox" id="flow5n" ${S.flow5_none?'checked':''}> 無</label>
+        </div>`);
+        stage.querySelector('#flow5').oninput = e=> S.flow5 = e.target.value;
+        stage.querySelector('#flow5n').onchange = e=>{ S.flow5_none = e.target.checked; render(); };
+        break;
+      case 11:
+        qWrap('生成召喚ChatGPT的Prompt','如果要返回修改內容，請點選「←上一題」。', `<div class="hint">如果要直接生成生成召喚ChatGPT的Prompt，請點「下一題→」。</div>`);
+        break;
+      case 12:
+        const text = compileText();
+        stage.innerHTML = `${progress()}<section class="card" style="padding:16px">
+          <div class="qtitle">將生成召喚ChatGPT的Prompt，複製到ChatGPT</div>
+          <div class="hint">點「Step.1 一鍵複製ChatGPT的Prompt」，接著按「Step.2 開啟ChatGPT，貼上複製的Prompt」貼上使用。</div>
+          <textarea id="out" class="field" aria-label="生成召喚ChatGPT的Prompt">${escapeHTML(text)}</textarea>
+          <div class="toolbar">
+            <button class="btn" id="copy">Step.1 一鍵複製貼到ChatGPT的Prompt</button>
+            <button class="btn secondary" id="openApp">Step.2 開啟ChatGPT，貼上複製的Prompt</button>
+            <button class="btn ghost" id="restart">重新開始</button>
+          </div>
+        </section>`;
+        stage.querySelector('#copy').onclick = async ()=>{
+          const txt = stage.querySelector('#out').value;
+          try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(txt); toast('已複製到剪貼簿！'); } else { fallbackCopy(txt); } }
+          catch{ fallbackCopy(txt); }
+        };
+        stage.querySelector('#restart').onclick = ()=> reset();
+        stage.querySelector('#openApp').onclick = openChatGPTApp;
+        break;
+    }
+  }
+
+  function findText(opts, id){ const f = opts.find(o=>o[0]===id); return f?f[1]:''; }
+  function compileText(){
+    const L1 = `1.我目前就讀：${findText([[1,'普通型高中一年級'],[2,'普通型高中二～三年級：人文法政類'],[3,'普通型高中二～三年級：財經商管類'],[4,'普通型高中二～三年級：科技工程類'],[5,'普通型高中二～三年級：生醫衛護類'],[6,'技職型高中'],[7,'其他']], S.g1) || '（未選）'}。`;
+    const L2 = `2.我目前就讀哪一科或那個班：${S.g2_dept || '（未填）'}。`;
+    const L3 = `3.我在社團擔任：${S.club_none?'無':(S.club||'（未填）')}。`;
+    const L4 = '4.我比較來勁的二個生涯興趣是：\n' + (S.riasec.length? S.riasec.map(id=>`(${id}) ${findText(riasecOpts,id)}`).join('\n') : '未選擇');
+    const L5 = '5.我比較擅長的三個多元智能：\n' + (S.mi.length? S.mi.map(id=>`(${id}) ${findText(miOpts,id)}`).join('\n') : '未選擇');
+    const L6 = '6.我最有心流時光的一次生命事件是：\n' + (S.flow1_none?'無':(S.flow1||'（未填）'));
+    const L7 = '7.我另一個比較有心流時光感覺的生命經歷是：\n' + (S.flow2_none?'無':(S.flow2||'（未填）'));
+    const L8 = '8.我另一個比較有心流時光感覺的生命經歷是：\n' + (S.flow3_none?'無':(S.flow3||'（未填）'));
+    const L9 = '9.我另一個比較有心流時光感覺的生命經歷是：\n' + (S.flow4_none?'無':(S.flow4||'（未填）'));
+    const L10= '10.我另一個比較有心流時光感覺的生命經歷是：\n' + (S.flow5_none?'無':(S.flow5||'（未填）'));
+
+    const tail = [
+'',
+'請你擔任我的「AI執涯教練」，',
+'根據上述心流時光圖及生涯興趣測驗結果的二項資訊，以生涯輔導的專業，考量我目前就讀的專業類別（請務必考量我在第1項＆第二項的回答內容。例如：我是就讀技術型高中的那個科別；或我是就讀普通高中二年級～三年級的那個類別。），以學習歷程檔案描述的方式，完成一份完整的「生涯興趣探索成果學習歷程檔案」。',
+'',
+'請先為這個「生涯興趣探索成果學習歷程檔案」取一個名稱。',
+'名稱的取名，請依整份學習歷程檔案的內容，取一個可以凸顯我探索結果，清楚易懂、畫龍點睛的標題。',
+'接著，請提供一段100個字的摘要。',
+'摘要的內容，可以讓讀者清楚地知悉我的生涯興趣探索成果，及未來想要執行的生涯探索活動。',
+'',
+'接著請依序完成以下四個段落。每個段落需有「大標題」及呼應大標題＆凸顯該段落內容的「副標題（一句話）」，接著再輸出完整段落內容。',
+'以下是四個要完成的段落',
+'',
+'一、我的生涯興趣測驗結果省思',
+'— 以我提供的心流時光事件及資訊，分別佐證兩個來勁的生涯興趣。每個生涯興趣至少要舉2個以上事件搭配相關相關資訊。每個生涯興趣的省思，請至少提供約300個字的內容。',
+'二、我未來想要探索的三個普通大學學群',
+'— 請根據我二個生涯興趣的組合，先從普通大學的18學群中挑出3個學群。推薦的每個學群，請詳細列出3個具體的推薦原因，並將這些原因彙整為200個字的說明。',
+'以下為普通大學18學群的一覽表：1.資訊學群 2.工程學群 3.數理化學群 4.醫藥衛生學群 5.生命科學學群 6.生物資源學群 7.地球與環境學群 8.建築與設計學群 9.藝術學群 10.社會與心理學群 11.大眾傳播學群 12.外語學群 13.文史哲學群 14.教育學群 15.法政學群 16.管理學群 17.財經學群 18.遊憩與運動學群）',
+'三、我未來想要探索的三個科技大學群類',
+ '— 請根據我二個生涯興趣的組合，先從科技大學的21群類中挑出3個群類。推薦的每個群類，請詳細列出3個具體的推薦原因，並將這些原因彙整為200個字的說明。',
+'以下為科技大學21群類的一覽表：1.機械群 2.動力機械群 3.電機與電子群－電機類 4.電機與電子群－資訊類 5.化工群 6.土木與建築群 7.設計群 8.工程與管理類 9.商業與管理群 10.衛生與護理類 11.食品群 12.家政群－幼保類 13.家政群－生活應用類 14.農業群 15.外語群－英語類 16.外語群－日語類 17.餐旅群 18.海事群 19.水產群 20.藝術群－影視類 21.資管類）',
+'四、針對選出的三個普通大學學群，訂定我的自主學習計畫或學群探索計畫',
+'— 針對上段選出的三個普通大學學群，各提出三項可立即著手的自主學習計畫或學群體驗計畫。每項自主學習計畫或學群體驗計畫，請以200個字以上的內容詳述執行步驟、資源與可產出成果。',
+'五、針對選出的三個科技大學群類，訂定我的自主學習計畫或群類探索計畫',
+'— 針對上段選出的三個科技大學群類，各提出三項可立即著手的自主學習計畫或專題實作計畫。每項自主學習計畫或專題實作計畫，請以200個字以上的內容詳述執行步驟、資源與可產出成果。',
+'六、總結反思',
+'— 以約200字完成整體自我省思，統整這次生涯興趣探索自己有何收穫？並且摘要透過這次探索，自己產生哪些生涯發展方向與學習行動計畫。',
+'',
+'分析結果的呈現方法：',
+'1.請先在對話框呈現上述自我探索學習歷程檔案全部的文字內容 。',
+'2.接著再將上述全部內容存成word檔案，方便我下載運用。',
+'word檔案的文字格式，請用「Microsoft JhengHei」或「Noto Sans CJK」。',
+'word檔案名稱請取名為 Mycareer。'
+    ].join('\n');
+
+    return ['「', L1,'',L2,'',L3,'',L4,'',L5,'',L6,'',L7,'',L8,'',L9,'',L10, '」', tail].join('\n');
+  }
+
+  function toast(msg){
+    const n=document.createElement('div');
+    n.textContent=msg;
+    Object.assign(n.style,{position:'fixed',left:'50%',bottom:'calc(env(safe-area-inset-bottom,0) + 24px)',transform:'translateX(-50%)',background:'#1f2328',color:'#fff',padding:'10px 14px',borderRadius:'999px',boxShadow:'0 6px 18px rgba(23,26,31,.2)',zIndex:1000});
+    document.body.appendChild(n);
+    setTimeout(()=>{n.style.opacity='0';n.style.transition='opacity .3s';},1200);
+    setTimeout(()=>n.remove(),1550);
+  }
+  function fallbackCopy(txt){
+    const ta=document.createElement('textarea');
+    ta.value=txt; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.top='-9999px';
+    document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); ta.remove();
+    toast('已複製到剪貼簿！');
+  }
+  function reset(){
+    Object.assign(S,{
+      step:0,
+      g1:null, g2_dept:'', g2_isHS:false,
+      club:'', club_none:false,
+      riasec:[], mi:[],
+      flow1:'', flow1_none:false,
+      flow2:'', flow2_none:false,
+      flow3:'', flow3_none:false,
+      flow4:'', flow4_none:false,
+      flow5:'', flow5_none:false,
+    });
+    landing.hidden = false; stage.innerHTML = '';
+  }
+
+  document.getElementById('startBtn')?.addEventListener('click', ()=>{ S.step=1; render(); });
+  document.getElementById('sampleBtn')?.addEventListener('click', ()=>{ Object.assign(S, sample); render(); });
+
+  render();
+})();</script>
+</body>
+</html>
